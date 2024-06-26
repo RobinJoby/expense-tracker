@@ -1,4 +1,5 @@
 import 'package:expense_tracker/models/expense.dart';
+import 'package:expense_tracker/widgets/chart/chart.dart';
 import 'package:expense_tracker/widgets/expense_widget/expenses_list.dart';
 import 'package:expense_tracker/widgets/new_expense.dart';
 import 'package:flutter/material.dart';
@@ -21,12 +22,6 @@ class _ExpensesScreen extends State<ExpensesScreen> {
       category: Category.work,
     ),
     Expense(
-      title: 'KFC',
-      amount: 212,
-      date: DateTime.now(),
-      category: Category.food,
-    ),
-    Expense(
       title: 'Football match',
       amount: 234,
       date: DateTime.now(),
@@ -36,13 +31,55 @@ class _ExpensesScreen extends State<ExpensesScreen> {
 
   void _openAddExpenseOverlay() {
     showModalBottomSheet(
+      useSafeArea: false,
+      isScrollControlled: true,
       context: context,
-      builder: (ctx) => const NewExpense(),
+      builder: (ctx) => NewExpense(
+        onAddExpense: _addExpense,
+      ),
+    );
+  }
+
+  void _addExpense(Expense data) {
+    setState(() {
+      _registeredExpenses.add(data);
+    });
+  }
+
+  void _removeExpense(Expense data) {
+    final dataIndex = _registeredExpenses.indexOf(data);
+    setState(() {
+      _registeredExpenses.remove(data);
+    });
+    ScaffoldMessenger.of(context)
+        .clearSnackBars(); //to clear if snackbars are already present
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Expense Deleted '),
+        duration: const Duration(
+          seconds: 3,
+        ),
+        action: SnackBarAction(
+            label: 'Undo',
+            onPressed: () {
+              setState(() {
+                _registeredExpenses.insert(dataIndex, data);
+              });
+            }),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    Widget activeScreen =
+        const Center(child: Text('No expenses found. Start adding some!'));
+    if (_registeredExpenses.isNotEmpty) {
+      activeScreen = ExpensesList(
+        expenses: _registeredExpenses,
+        onRemoveExpense: _removeExpense,
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -59,13 +96,9 @@ class _ExpensesScreen extends State<ExpensesScreen> {
       ),
       body: Column(
         children: [
-          const Text(
-            'ChartArea',
-          ),
+          Chart(expenses: _registeredExpenses),
           Expanded(
-            child: ExpensesList(
-              expenses: _registeredExpenses,
-            ),
+            child: activeScreen,
           )
         ],
       ),
