@@ -73,7 +73,7 @@ class _ExpensesScreen extends State<ExpensesScreen> {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
+    //final height = MediaQuery.of(context).size.height;
     Widget activeScreen =
         const Center(child: Text('No expenses found. Start adding some!'));
     if (_registeredExpenses.isNotEmpty) {
